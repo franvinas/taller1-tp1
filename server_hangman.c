@@ -16,27 +16,21 @@ int hangman_get_msg(hangman_t *self, char *msg) {
     msg[2] = (msg_len_be & 255);
     for (int i = 0; i < self->len; i++)
         msg[3+i] = self->partial_word[i];
-    // printBits(self->msg[0], 1);
-    // printBits(self->msg[1], 1);
-    // printBits(self->msg[2], 1);
-    // msg = self->msg;
+    
     return msg_len;
 }
-
 
 int hangman_create(hangman_t *self, char *word) {
     self->tries_left = 5; // se pasa como argumento
     self->game_over = false;
-    strcpy(self->word, word);
     self->len = strlen(word);
+    snprintf(self->word, self->len + 1, "%s", word);
     // self->msg = malloc((self->len) + 2);
     hangman_initialize_partial_word(self);
-    hangman_show_info(self);
     return 0;
 }
 
 int hangman_destroy(hangman_t *self) {
-    
     return 0;
 }
 
@@ -45,16 +39,14 @@ int hangman_try_letter(hangman_t *self, char letter) {
     if (!guess) {
         self->tries_left -=1;
         if (self->tries_left == 0) {
-            // printf("Perdiste! La palabra secreta era: '%s'\n", self->word);
             self->game_over = true;
+            snprintf(self->partial_word, self->len + 1, "%s", self->word);
             return -1;
         }
     } else if (!strcmp(self->word, self->partial_word)) {
-        // printf("Ganaste!!\n");
         self->game_over = true;
         return -1;
     }
-    hangman_show_info(self);
     return 0;
 }
 
@@ -74,10 +66,4 @@ void hangman_initialize_partial_word(hangman_t *self) {
     for (; i < self->len; i++)
         self->partial_word[i] = '_';
     self->partial_word[i] = '\0';
-}
-
-void hangman_show_info(hangman_t *self) {
-    printf("Palabra secreta: %s\n", self->partial_word);
-    printf("Palabra completa: %s\n", self->word);
-    printf("Te quedan %d intentos\n", self->tries_left);
 }
