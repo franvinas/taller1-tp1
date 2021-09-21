@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 int hangman_create(hangman_t *self, char *word) {
-    self->tries_left = 5;
+    self->tries_left = 5; // se pasa como argumento
     strcpy(self->word, word);
     self->len = strlen(word);
     hangman_initialize_partial_word(self);
