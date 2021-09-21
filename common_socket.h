@@ -9,7 +9,7 @@
 
 typedef struct {
     int fd;
-    const struct addrinfo *address;
+    struct addrinfo *address;
 } socket_t;
 
 void socket_create(socket_t *self);

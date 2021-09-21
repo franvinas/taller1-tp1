@@ -77,7 +77,10 @@ void socket_create(socket_t *self) {
     printf("Socket created\n");
 }
 
-void socket_destroy(socket_t *self);
+void socket_destroy(socket_t *self) {
+    freeaddrinfo(self->address);
+    close(self->fd);
+}
 
 void socket_bind_and_listen(socket_t *self, \
                             const char *host, \

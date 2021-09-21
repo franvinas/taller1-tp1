@@ -8,9 +8,10 @@
 typedef struct {
     char word[WORD_MAX_SIZE];
     char partial_word[WORD_MAX_SIZE];
-    int tries_left;
-    int len;
-
+    char tries_left;
+    unsigned short int len;
+    bool game_over;
+    // char *msg;
 } hangman_t;
 
 
@@ -25,5 +26,7 @@ bool hangman_contains_letter(hangman_t *self, char c);
 void hangman_initialize_partial_word(hangman_t *self);
 
 void hangman_show_info(hangman_t *self);
+
+int hangman_get_msg(hangman_t *self, char *msg);
 
 #endif
