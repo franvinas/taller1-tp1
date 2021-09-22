@@ -3,6 +3,8 @@
 #include <arpa/inet.h>
 #include "common_socket.h"
 
+#define MAX_LENGTH_MSG 100
+
 bool message_decode_and_print(char *msg) {
     bool game_over = (msg[0] & 0x80);
     unsigned char tries_left = (msg[0] & 0x3F);
@@ -12,35 +14,50 @@ bool message_decode_and_print(char *msg) {
     word[msg_len] = '\0';
 
     if (!game_over) {
-        printf("Palabra seceta: %s\n", word);
+        printf("Palabra secreta: %s\n", word);
         printf("Te quedan %hhu intentos\n", tries_left);
     } else if (tries_left > 0) {
         printf("Ganaste!!\n");
     } else {
-        printf("Perdiste! La palabra era: %s\n", word);
+        printf("Perdiste! La palabra secreta era: '%s'\n", word);
     }
     return game_over;    
 }
 
 int main(int argc, const char *argv[]) {
     socket_t client_socket;
-    char c;
-    char msg[10];
+    int s;
+    char c = 0;
+    char msg[100] = "";
     bool game_over = false;
-    socket_create(&client_socket);
-    socket_connect(&client_socket, "127.0.0.1", "7778");
     
+    if (argc != 3) {
+        printf("Error en la cantidad de argumentos\n");
+        printf("El cliente se ejecuta de la siguiente manera:\n");
+        printf("./client <host> <port>\n");
+        return -1;
+    }
+
+    socket_create(&client_socket);
+    s = socket_connect(&client_socket, argv[1], argv[2]);
+    if (s == -1) {
+        return -1;
+    }
+
+    socket_receive(&client_socket, msg, MAX_LENGTH_MSG);
+    game_over = message_decode_and_print(msg);
 
     while (!game_over) {
         if (c != '\n')
-            printf("Enter character: ");
+            printf("Ingrese letra: ");
         c = getchar();
         if (c != '\n') {
+            printf("\n");
             socket_send(&client_socket, &c, 1);
-            socket_receive(&client_socket, msg, 10);
+            socket_receive(&client_socket, msg, MAX_LENGTH_MSG);
             game_over = message_decode_and_print(msg);
         }
-    }    
+    }
 
     socket_destroy(&client_socket);
 

@@ -63,7 +63,6 @@ static void socket_listen(socket_t *self) {
         close(self->fd);
         return;
     }
-    printf("Listening\n");
 }
 
 
@@ -74,7 +73,6 @@ static void socket_listen(socket_t *self) {
 void socket_create(socket_t *self) {
     self->fd = -1;
     self->address = NULL;
-    printf("Socket created\n");
 }
 
 void socket_destroy(socket_t *self) {
@@ -109,13 +107,11 @@ void socket_accept(socket_t *listener, socket_t *peer) {
     int peerskt = accept(listener->fd, NULL, NULL);   // aceptamos un cliente
     if (peerskt == -1) {
         printf("Error: %s\n", strerror(errno));
-    } else {
-        printf("New client\n");
     }
     peer->fd = peerskt;
 }
 
-void socket_connect(socket_t *self, const char *host, const char *service) {
+int socket_connect(socket_t *self, const char *host, const char *service) {
     struct addrinfo *ptr;
     
     socket_getaddrinfo(self, host, service, &ptr);
@@ -125,17 +121,17 @@ void socket_connect(socket_t *self, const char *host, const char *service) {
     if (self->fd == -1) {
         printf("Error: %s\n", strerror(errno));
         freeaddrinfo(ptr);
-        return;
+        return -1;
     }
 
     int c = connect(self->fd, ptr->ai_addr, ptr->ai_addrlen);
     if (c == -1) {
         printf("Error: %s\n", strerror(errno));
         freeaddrinfo(ptr);
-        return;
+        return -1;
     }
-    printf("Socket connected\n");
     self->address = ptr;
+    return 0;
 }
 
 ssize_t socket_send(socket_t *self, const char *buffer, size_t length) {

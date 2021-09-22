@@ -20,17 +20,20 @@ int hangman_get_msg(hangman_t *self, char *msg) {
     return msg_len;
 }
 
-int hangman_create(hangman_t *self, char *word) {
-    self->tries_left = 5; // se pasa como argumento
+int hangman_create(hangman_t *self, char *word, int tries) {
+    self->tries_left = tries;
     self->game_over = false;
     self->len = strlen(word);
+    self->word = malloc((self->len));
+    self->partial_word = malloc((self->len));
     snprintf(self->word, self->len + 1, "%s", word);
-    // self->msg = malloc((self->len) + 2);
     hangman_initialize_partial_word(self);
+
     return 0;
 }
 
 int hangman_destroy(hangman_t *self) {
+    free(self->word);
     return 0;
 }
 
@@ -47,6 +50,7 @@ int hangman_try_letter(hangman_t *self, char letter) {
         self->game_over = true;
         return -1;
     }
+
     return 0;
 }
 

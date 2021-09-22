@@ -3,19 +3,16 @@
 #ifndef SERVER_AHORCADO_H
 #define SERVER_HANGMAN_H
 
-#define WORD_MAX_SIZE 15
-
 typedef struct {
-    char word[WORD_MAX_SIZE];
-    char partial_word[WORD_MAX_SIZE];
-    char tries_left;
+    char *word;
+    char *partial_word;
+    unsigned char tries_left;
     unsigned short int len;
     bool game_over;
-    // char *msg;
 } hangman_t;
 
 
-int hangman_create(hangman_t *self, char *word);
+int hangman_create(hangman_t *self, char *word, int tries);
 
 int hangman_destroy(hangman_t *self);
 
