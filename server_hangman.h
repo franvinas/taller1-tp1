@@ -18,12 +18,6 @@ int hangman_destroy(hangman_t *self);
 
 int hangman_try_letter(hangman_t *self, char letter);
 
-bool hangman_contains_letter(hangman_t *self, char c);
-
-void hangman_initialize_partial_word(hangman_t *self);
-
-void hangman_show_info(hangman_t *self);
-
 int hangman_get_msg(hangman_t *self, char *msg);
 
 #endif

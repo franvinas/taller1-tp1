@@ -30,18 +30,19 @@ int main(int argc, const char *argv[]) {
     char c = 0;
     char msg[100] = "";
     bool game_over = false;
+    bool passive = false;
     
     if (argc != 3) {
         printf("Error en la cantidad de argumentos\n");
         printf("El cliente se ejecuta de la siguiente manera:\n");
         printf("./client <host> <port>\n");
-        return -1;
+        return 1;
     }
 
     socket_create(&client_socket);
-    s = socket_connect(&client_socket, argv[1], argv[2]);
+    s = socket_connect(&client_socket, argv[1], argv[2], passive);
     if (s == -1) {
-        return -1;
+        return 1;
     }
 
     socket_receive(&client_socket, msg, MAX_LENGTH_MSG);

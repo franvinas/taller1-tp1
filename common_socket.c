@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -11,19 +12,21 @@
 /***********************
     Metodos privados
 ************************/
-static void socket_getaddrinfo(socket_t *self, \
-                        const char *host, \
-                        const char *service, \
-                        struct addrinfo **ptr) {
+
+static void socket_getaddrinfo(socket_t *self,
+                        const char *host,
+                        const char *service,
+                        struct addrinfo **ptr,
+                        bool passive) {
     int s = 0;
     struct addrinfo hints;
 
     memset(&hints, 0, sizeof(struct addrinfo));
 
-    hints.ai_family = AF_INET;       /* IPv4 (or AF_INET6 for IPv6)     */
-    hints.ai_socktype = SOCK_STREAM; /* TCP  (or SOCK_DGRAM for UDP)    */
-    hints.ai_flags = AI_PASSIVE;     /* AI_PASSIVE for server           */
-
+    hints.ai_family = AF_INET;                      /* IPv4 */
+    hints.ai_socktype = SOCK_STREAM;                /* TCP  */
+    hints.ai_flags = passive ? AI_PASSIVE : 0;      /* AI_PASSIVE for server 
+                                                       and 0 for client */
     s = getaddrinfo(host, service, &hints, ptr);
     if (s != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
@@ -31,9 +34,9 @@ static void socket_getaddrinfo(socket_t *self, \
     }
 }
 
+// Activamos la opcion de Reusar la Direccion en caso de que esta
+// no este disponible por un TIME_WAIT    
 static void socket_reuse_address(socket_t *self, struct addrinfo *ptr) {
-    // Activamos la opcion de Reusar la Direccion en caso de que esta
-    // no este disponible por un TIME_WAIT
     int s;
     int val = 1;
     s = setsockopt(self->fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
@@ -44,7 +47,6 @@ static void socket_reuse_address(socket_t *self, struct addrinfo *ptr) {
         return;
     }
 }
-
 
 static void socket_bind(socket_t *self, struct addrinfo *ptr) {
     int s = bind(self->fd, ptr->ai_addr, ptr->ai_addrlen);
@@ -65,7 +67,6 @@ static void socket_listen(socket_t *self) {
     }
 }
 
-
 /***********************
     Metodos publicos
 ************************/
@@ -80,11 +81,12 @@ void socket_destroy(socket_t *self) {
     close(self->fd);
 }
 
-void socket_bind_and_listen(socket_t *self, \
-                            const char *host, \
-                            const char *service) {
+void socket_bind_and_listen(socket_t *self,
+                            const char *host,
+                            const char *service,
+                            bool passive) {
     struct addrinfo *ptr;
-    socket_getaddrinfo(self, host, service, &ptr);
+    socket_getaddrinfo(self, host, service, &ptr, passive);
     
     self->fd = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
 
@@ -95,27 +97,30 @@ void socket_bind_and_listen(socket_t *self, \
     }
 
     socket_reuse_address(self, ptr);
-
     socket_bind(self, ptr);
-
     freeaddrinfo(ptr);
-
     socket_listen(self); 
 }
 
 void socket_accept(socket_t *listener, socket_t *peer) {
-    int peerskt = accept(listener->fd, NULL, NULL);   // aceptamos un cliente
+    int peerskt = accept(listener->fd, NULL, NULL);
     if (peerskt == -1) {
         printf("Error: %s\n", strerror(errno));
     }
     peer->fd = peerskt;
 }
 
-int socket_connect(socket_t *self, const char *host, const char *service) {
+void socket_close(socket_t *peer) {
+    close(peer->fd);
+}
+
+int socket_connect(socket_t *self, 
+                    const char *host, 
+                    const char *service, 
+                    bool passive) {
     struct addrinfo *ptr;
     
-    socket_getaddrinfo(self, host, service, &ptr);
-
+    socket_getaddrinfo(self, host, service, &ptr, passive);
     self->fd = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
 
     if (self->fd == -1) {

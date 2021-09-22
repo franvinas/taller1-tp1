@@ -33,6 +33,7 @@ int main(int argc, const char *argv[]) {
     unsigned int victories = 0;
     unsigned int defeats = 0;
     bool victory;
+    bool pasive = true;
     FILE *words_repository;
     ssize_t line_len;
     size_t buffer_line_size;
@@ -44,17 +45,17 @@ int main(int argc, const char *argv[]) {
         printf("Error en la cantidad de argumentos\n");
         printf("El servidor se ejecuta de la siguiente manera:\n");
         printf("./server <port> <N> <path al repositorio de palabras>\n");
-        return -1;
+        return 1;
     }
 
     words_repository = fopen(argv[3], "r");
     if (words_repository == NULL) {
         printf("Error al abrir el archivo\n");
-        return -1;
+        return 1;
     }
 
     socket_create(&server_socket);
-    socket_bind_and_listen(&server_socket, "127.0.0.1", argv[1]);
+    socket_bind_and_listen(&server_socket, "127.0.0.1", argv[1], pasive);
     
     while ((line_len = getline(&word, &buffer_line_size, words_repository)) > 1) {
         socket_accept(&server_socket, &client_socket);
@@ -67,6 +68,7 @@ int main(int argc, const char *argv[]) {
         else
             defeats++;
         hangman_destroy(&hangman);
+        socket_close(&client_socket);
     }
 
     print_summary(victories, defeats);
