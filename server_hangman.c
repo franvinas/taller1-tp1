@@ -67,15 +67,13 @@ int hangman_try_letter(hangman_t *self, char letter) {
 
 int hangman_get_msg(hangman_t *self, char *msg) {
     int msg_len = 3 + self->len;
-    short int msg_len_be = htons(msg_len);
+    unsigned short int msg_len_be = htons(msg_len);
     
     msg[0] = (char) (self->game_over ? 0x80 : 0);
     msg[0] = msg[0] | self->tries_left;
     
-    msg[1] = (msg_len_be >> 8);
-    msg[2] = (msg_len_be & 255);
-    for (int i = 0; i < self->len; i++)
-        msg[3+i] = self->partial_word[i];
-    
+    memcpy(&msg[1], &msg_len_be, 2);
+    memcpy(&msg[3], self->partial_word, self->len);
+
     return msg_len;
 }

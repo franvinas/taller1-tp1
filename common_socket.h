@@ -9,7 +9,6 @@
 
 typedef struct {
     int fd;
-    struct addrinfo *address;
 } socket_t;
 
 void socket_create(socket_t *self);
@@ -19,13 +18,17 @@ void socket_destroy(socket_t *self);
 void socket_bind_and_listen(socket_t *self,
                             const char *host,
                             const char *service,
+                            int queue_length,
                             bool passive);
 
 void socket_accept(socket_t *listener, socket_t *peer);
 
 void socket_close(socket_t *peer);
 
-int socket_connect(socket_t *self, const char *host, const char *service, bool passive);
+int socket_connect(socket_t *self, 
+                   const char *host,
+                   const char *service, 
+                   bool passive);
 
 ssize_t socket_send(socket_t *self, const char *buffer, size_t length);
 

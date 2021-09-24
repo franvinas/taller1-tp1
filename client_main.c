@@ -3,13 +3,17 @@
 #include <arpa/inet.h>
 #include "common_socket.h"
 
-#define MAX_LENGTH_MSG 100
+#define MIN_LEN_MSG 3
 
-bool message_decode_and_print(char *msg) {
+unsigned short int get_msg_len(char *msg) {
+    unsigned short int msg_len_net;
+    memcpy(&msg_len_net, &msg[1], 2);
+    return ntohs(msg_len_net);
+}
+
+bool message_decode_and_print(char *msg, unsigned short int msg_len) {
     bool game_over = (msg[0] & 0x80);
     unsigned char tries_left = (msg[0] & 0x3F);
-    unsigned short int msg_len_net = msg[2] | (msg[1] << 8);
-    unsigned short int msg_len = ntohs(msg_len_net);
     char *word = msg + 3;
     word[msg_len] = '\0';
 
@@ -27,6 +31,7 @@ bool message_decode_and_print(char *msg) {
 int main(int argc, const char *argv[]) {
     socket_t client_socket;
     int s;
+    unsigned short int msg_len;
     char c = 0;
     char msg[100] = "";
     bool game_over = false;
@@ -45,8 +50,10 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
 
-    socket_receive(&client_socket, msg, MAX_LENGTH_MSG);
-    game_over = message_decode_and_print(msg);
+    socket_receive(&client_socket, msg, MIN_LEN_MSG);
+    msg_len = get_msg_len(msg);
+    socket_receive(&client_socket, msg + MIN_LEN_MSG, msg_len - MIN_LEN_MSG);
+    game_over = message_decode_and_print(msg, msg_len);
 
     while (!game_over) {
         if (c != '\n')
@@ -55,8 +62,8 @@ int main(int argc, const char *argv[]) {
         if (c != '\n') {
             printf("\n");
             socket_send(&client_socket, &c, 1);
-            socket_receive(&client_socket, msg, MAX_LENGTH_MSG);
-            game_over = message_decode_and_print(msg);
+            socket_receive(&client_socket, msg, msg_len);
+            game_over = message_decode_and_print(msg, msg_len);
         }
     }
 

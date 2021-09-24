@@ -4,6 +4,8 @@
 #include "server_hangman.h"
 #include "common_socket.h"
 
+#define LISTEN_BACKLOG 50
+
 bool play_hangman(hangman_t *hangman, socket_t * client_socket) {
     int msg_len;
     int game_over = 0;
@@ -34,7 +36,7 @@ int main(int argc, const char *argv[]) {
     unsigned int defeats = 0;
     bool victory;
     bool pasive = true;
-    FILE *words_repository;
+    FILE *words_repo;
     ssize_t line_len;
     size_t buffer_line_size;
     socket_t server_socket;
@@ -48,16 +50,17 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
 
-    words_repository = fopen(argv[3], "r");
-    if (words_repository == NULL) {
+    words_repo = fopen(argv[3], "r");
+    if (words_repo == NULL) {
         printf("Error al abrir el archivo\n");
         return 1;
     }
 
     socket_create(&server_socket);
-    socket_bind_and_listen(&server_socket, "127.0.0.1", argv[1], pasive);
+    socket_bind_and_listen(&server_socket, "127.0.0.1", 
+                            argv[1], LISTEN_BACKLOG, pasive);
     
-    while ((line_len = getline(&word, &buffer_line_size, words_repository)) > 1) {
+    while ((line_len = getline(&word, &buffer_line_size, words_repo)) > 1) {
         socket_accept(&server_socket, &client_socket);
         
         word[line_len - 1] = '\0';
@@ -75,7 +78,7 @@ int main(int argc, const char *argv[]) {
 
     free(word);
     socket_destroy(&server_socket);
-    fclose(words_repository);
+    fclose(words_repo);
 
     return 0;
 }

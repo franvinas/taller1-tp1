@@ -25,8 +25,8 @@ static void socket_getaddrinfo(socket_t *self,
 
     hints.ai_family = AF_INET;                      /* IPv4 */
     hints.ai_socktype = SOCK_STREAM;                /* TCP  */
-    hints.ai_flags = passive ? AI_PASSIVE : 0;      /* AI_PASSIVE for server 
-                                                       and 0 for client */
+    hints.ai_flags = passive ? AI_PASSIVE : 0;      /* AI_PASSIVE for server */
+                                                    /* and 0 for client */
     s = getaddrinfo(host, service, &hints, ptr);
     if (s != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
@@ -58,8 +58,8 @@ static void socket_bind(socket_t *self, struct addrinfo *ptr) {
     }
 }
 
-static void socket_listen(socket_t *self) {
-    int s = listen(self->fd, 20);
+static void socket_listen(socket_t *self, int queue_length) {
+    int s = listen(self->fd, queue_length);
     if (s == -1) {
         printf("Error: %s\n", strerror(errno));
         close(self->fd);
@@ -73,17 +73,16 @@ static void socket_listen(socket_t *self) {
 
 void socket_create(socket_t *self) {
     self->fd = -1;
-    self->address = NULL;
 }
 
 void socket_destroy(socket_t *self) {
-    freeaddrinfo(self->address);
     close(self->fd);
 }
 
 void socket_bind_and_listen(socket_t *self,
                             const char *host,
                             const char *service,
+                            int queue_length,
                             bool passive) {
     struct addrinfo *ptr;
     socket_getaddrinfo(self, host, service, &ptr, passive);
@@ -99,7 +98,7 @@ void socket_bind_and_listen(socket_t *self,
     socket_reuse_address(self, ptr);
     socket_bind(self, ptr);
     freeaddrinfo(ptr);
-    socket_listen(self); 
+    socket_listen(self, queue_length); 
 }
 
 void socket_accept(socket_t *listener, socket_t *peer) {
@@ -135,26 +134,42 @@ int socket_connect(socket_t *self,
         freeaddrinfo(ptr);
         return -1;
     }
-    self->address = ptr;
+    freeaddrinfo(ptr);
     return 0;
 }
 
 ssize_t socket_send(socket_t *self, const char *buffer, size_t length) {
-    ssize_t w = write(self->fd, buffer, length);
-    if (w == -1) {
-        printf("Error write: %s\n", strerror(errno));
-        return w;
-    }
+    ssize_t write_bytes = 0;
+    ssize_t b;
 
-    return w;
+    while (length > write_bytes) {
+        b = send(self->fd, buffer + write_bytes, length - write_bytes, MSG_NOSIGNAL);
+        if (b == -1) {
+            printf("Error write: %s\n", strerror(errno));
+            return b;
+        } else if (b == 0) { // Socket cerrado
+            return 0;
+        } else {
+            write_bytes += b;
+        }
+    }
+    return 0;
 }
 
 ssize_t socket_receive(socket_t *self, char *buffer, size_t length) {
-    ssize_t w = read(self->fd, buffer, length);
-    if (w == -1) {
-        printf("Error read: %s", strerror(errno));
-        return w;
-    }
+    ssize_t read_bytes = 0;
+    ssize_t b;
 
-    return w;
+    while (length > read_bytes) {
+        b = recv(self->fd, buffer + read_bytes, length - read_bytes, 0);
+        if (b == -1) {
+            printf("Error read: %s\n", strerror(errno));
+            return b;
+        } else if (b == 0) { // Socket cerrado
+            return 0;
+        } else {
+            read_bytes += b;
+        }
+    }
+    return 0;
 }
