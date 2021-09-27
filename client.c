@@ -17,7 +17,7 @@ unsigned short int get_msg_len(char *msg) {
 }
 
 bool message_decode_and_print(char *msg, unsigned short int msg_len) {
-    bool game_over = (msg[0] & 0x80);
+    bool game_over = (msg[0] & 0x80) != 0;
     unsigned char tries_left = (msg[0] & 0x3F);
     char *word = msg + 3;
     word[msg_len] = '\0';

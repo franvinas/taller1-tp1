@@ -61,7 +61,6 @@ int server_destroy(server_t *self) {
 int server_run(server_t *self) {
     socket_t client_socket;
     hangman_t hangman;
-    bool victory;
     char *word = NULL;
     ssize_t line_len;
     size_t buffer_size;
@@ -70,8 +69,7 @@ int server_run(server_t *self) {
         
         word[line_len - 1] = '\0';
         hangman_create(&hangman, word, self->tries);
-        victory = play_hangman(&hangman, &client_socket);
-        if (victory)
+        if (play_hangman(&hangman, &client_socket))
             self->victories++;
         else
             self->defeats++;
