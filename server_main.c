@@ -13,13 +13,19 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
 
-    server_create(&server, argv[1], atoi(argv[2]), argv[3]);
+    if (server_create(&server, argv[1], atoi(argv[2]), argv[3]) != 0) {
+        return 1;
+    }
     
-    server_run(&server);
+    if (server_run(&server) != 0) {
+        return 1;
+    }
 
     server_print_summary(&server);
     
-    server_destroy(&server);
+    if (server_destroy(&server) != 0) {
+        return 1;
+    }
 
     return 0;
 }
