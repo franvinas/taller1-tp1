@@ -139,36 +139,36 @@ int socket_connect(socket_t *self,
 }
 
 ssize_t socket_send(socket_t *self, const char *buffer, size_t length) {
-    ssize_t write_bytes = 0;
+    ssize_t sent_b = 0;
     ssize_t b;
 
-    while (length > write_bytes) {
-        b = send(self->fd, buffer + write_bytes, length - write_bytes, MSG_NOSIGNAL);
+    while (length > sent_b) {
+        b = send(self->fd, buffer + sent_b, length - sent_b, MSG_NOSIGNAL);
         if (b == -1) {
             printf("Error write: %s\n", strerror(errno));
             return b;
         } else if (b == 0) { // Socket cerrado
             return 0;
         } else {
-            write_bytes += b;
+            sent_b += b;
         }
     }
     return 0;
 }
 
 ssize_t socket_receive(socket_t *self, char *buffer, size_t length) {
-    ssize_t read_bytes = 0;
+    ssize_t recv_b = 0;
     ssize_t b;
 
-    while (length > read_bytes) {
-        b = recv(self->fd, buffer + read_bytes, length - read_bytes, 0);
+    while (length > recv_b) {
+        b = recv(self->fd, buffer + recv_b, length - recv_b, 0);
         if (b == -1) {
             printf("Error read: %s\n", strerror(errno));
             return b;
         } else if (b == 0) { // Socket cerrado
             return 0;
         } else {
-            read_bytes += b;
+            recv_b += b;
         }
     }
     return 0;

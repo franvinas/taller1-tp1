@@ -6,7 +6,7 @@
 #define SERVER_H
 
 typedef struct {
-    FILE *words_repository;
+    FILE *words_repo;
     socket_t sk;
     unsigned int victories;
     unsigned int defeats;
@@ -14,7 +14,10 @@ typedef struct {
 } server_t;
 
 
-int server_create(server_t *self, const char *port, int tries, const char *words_repository_name);
+int server_create(server_t *self, 
+                  const char *port, 
+                  int tries, 
+                  const char *words_repo_name);
 
 int server_run(server_t *self);
 

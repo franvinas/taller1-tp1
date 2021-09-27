@@ -31,10 +31,13 @@ bool play_hangman(hangman_t *hangman, socket_t * client_socket) {
     Metodos publicos
 ************************/
 
-int server_create(server_t *self, const char *port, int tries, const char *words_repository_name) {
+int server_create(server_t *self, 
+                  const char *port, 
+                  int tries, 
+                  const char *words_repo_name) {
     bool pasive = true;
-    self->words_repository = fopen(words_repository_name, "r");
-    if (self->words_repository == NULL) {
+    self->words_repo = fopen(words_repo_name, "r");
+    if (self->words_repo == NULL) {
         printf("Error al abrir el archivo\n");
         return 1;
     }
@@ -51,7 +54,7 @@ int server_create(server_t *self, const char *port, int tries, const char *words
 
 int server_destroy(server_t *self) {
     socket_destroy(&self->sk);
-    fclose(self->words_repository);
+    fclose(self->words_repo);
     return 0;
 }
 
@@ -61,8 +64,8 @@ int server_run(server_t *self) {
     bool victory;
     char *word = NULL;
     ssize_t line_len;
-    size_t buffer_line_size;
-    while ((line_len = getline(&word, &buffer_line_size, self->words_repository)) > 1) {
+    size_t buffer_size;
+    while ((line_len = getline(&word, &buffer_size, self->words_repo)) > 1) {
         socket_accept(&self->sk, &client_socket);
         
         word[line_len - 1] = '\0';
