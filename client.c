@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <arpa/inet.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #define MIN_LEN_MSG 3
 
@@ -20,7 +21,7 @@ static bool message_decode_and_print(char *msg, unsigned short int word_len) {
     bool game_over = (msg[0] & 0x80) != 0;
     unsigned char tries_left = (msg[0] & 0x3F);
     char *word = msg + MIN_LEN_MSG;
-    word[word_len + MIN_LEN_MSG] = '\0';
+    word[word_len] = '\0';
 
     if (!game_over) {
         printf("Palabra secreta: %s\n", word);
@@ -39,13 +40,11 @@ static bool message_decode_and_print(char *msg, unsigned short int word_len) {
 
 int client_create(client_t *self) {
     socket_create(&self->sk);
-    
     return 0;
 }
 
 int client_destroy(client_t *self) {
     socket_destroy(&self->sk);
-    
     return 0;
 }
 
@@ -60,11 +59,19 @@ int client_connect(client_t *self, const char *host, const char *port) {
 int client_run(client_t *self) {
     unsigned short int word_len;
     char c = 0;
-    char msg[100] = "";
+    char *tmp;
+    char *msg = malloc(MIN_LEN_MSG *sizeof(char));
     bool game_over = false;
 
     socket_recv(&self->sk, msg, MIN_LEN_MSG);
     word_len = get_word_len(msg);
+    tmp = realloc(msg, MIN_LEN_MSG + word_len + 1);
+    if (tmp == NULL) {
+        free(tmp);
+        return 1;
+    } else {
+        msg = tmp;
+    }
     socket_recv(&self->sk, msg + MIN_LEN_MSG, word_len);
     game_over = message_decode_and_print(msg, word_len);
 
@@ -79,6 +86,8 @@ int client_run(client_t *self) {
             game_over = message_decode_and_print(msg, word_len);
         }
     }
+    
+    free(msg);
 
     return 0;
 }

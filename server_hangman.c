@@ -12,8 +12,7 @@
 ************************/
 
 static void hangman_initialize_partial_word(hangman_t *self) {
-    int i = 0;
-    for (; i < self->len; i++)
+    for (int i = 0; i < self->len; i++)
         self->partial_word[i] = '_';
 }
 
@@ -51,16 +50,15 @@ int hangman_destroy(hangman_t *self) {
 }
 
 int hangman_try_letter(hangman_t *self, char letter) {
-    bool guess = hangman_contains_letter(self, letter);
-    if (!guess) {
+    if (!hangman_contains_letter(self, letter)) {
         self->tries_left -=1;
         if (self->tries_left == 0) {
-            self->game_over = true;
+            self->game_over = true; // Se quedó sin intentos (perdió)
             memcpy(self->partial_word, self->word, self->len);
             return 1;
         }
     } else if (!memcmp(self->word, self->partial_word, self->len)) {
-        self->game_over = true;
+        self->game_over = true; // adivinó la palabra (ganó)
         return 1;
     }
 
@@ -80,4 +78,3 @@ int hangman_get_msg(hangman_t *self, char **msg) {
 
     return msg_len;
 }
-

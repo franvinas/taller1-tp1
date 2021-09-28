@@ -85,4 +85,3 @@ void server_print_summary(server_t *self) {
     printf("\tVictorias: %u\n", self->victories);
     printf("\tDerrotas: %u\n", self->defeats);
 }
-
