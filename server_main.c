@@ -13,11 +13,15 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
 
-    if (server_create(&server, argv[1], atoi(argv[2]), argv[3]) != 0) {
+    if (server_create(&server) != 0) {
+        return 1;
+    }
+
+    if (server_bind_and_listen(&server, argv[1]) != 0) {
         return 1;
     }
     
-    if (server_run(&server) != 0) {
+    if (server_run(&server, atoi(argv[2]), argv[3]) != 0) {
         return 1;
     }
 

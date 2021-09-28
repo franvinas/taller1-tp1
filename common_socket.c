@@ -34,12 +34,12 @@ static void socket_getaddrinfo(socket_t *self,
     }
 }
 
-// Activamos la opcion de Reusar la Direccion en caso de que esta
-// no este disponible por un TIME_WAIT    
+/*  Se activa la opción de reusar la direccion en caso de que esta
+ *  no este disponible por un TIME_WAIT 
+ */
 static void socket_reuse_address(socket_t *self, struct addrinfo *ptr) {
-    int s;
     int val = 1;
-    s = setsockopt(self->fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
+    int s = setsockopt(self->fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
     if (s == -1) {
         printf("Error: %s\n", strerror(errno));
         close(self->fd);
@@ -82,9 +82,9 @@ void socket_destroy(socket_t *self) {
 void socket_bind_and_listen(socket_t *self,
                             const char *host,
                             const char *service,
-                            int queue_length,
-                            bool passive) {
+                            int queue_length) {
     struct addrinfo *ptr;
+    bool passive = true; // necesario para luego aceptar conexiones
     socket_getaddrinfo(self, host, service, &ptr, passive);
     
     self->fd = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
@@ -101,23 +101,18 @@ void socket_bind_and_listen(socket_t *self,
     socket_listen(self, queue_length); 
 }
 
-void socket_accept(socket_t *listener, socket_t *peer) {
-    int peerskt = accept(listener->fd, NULL, NULL);
-    if (peerskt == -1) {
+void socket_accept(socket_t *self, socket_t *peer) {
+    peer->fd = accept(self->fd, NULL, NULL);
+    if (peer->fd == -1) {
         printf("Error: %s\n", strerror(errno));
     }
-    peer->fd = peerskt;
-}
-
-void socket_close(socket_t *peer) {
-    close(peer->fd);
 }
 
 int socket_connect(socket_t *self, 
                     const char *host, 
-                    const char *service, 
-                    bool passive) {
+                    const char *service) {
     struct addrinfo *ptr;
+    bool passive = false; // necesario para luego usar connect
     
     socket_getaddrinfo(self, host, service, &ptr, passive);
     self->fd = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
@@ -138,14 +133,14 @@ int socket_connect(socket_t *self,
     return 0;
 }
 
-ssize_t socket_send(socket_t *self, const char *buffer, size_t len) {
+int socket_send(socket_t *self, const char *buffer, size_t len) {
     ssize_t sent_b = 0;
 
     while (len > sent_b) {
         ssize_t b = send(self->fd, buffer + sent_b, len - sent_b, MSG_NOSIGNAL);
         if (b == -1) {
-            printf("Error write: %s\n", strerror(errno));
-            return b;
+            printf("Error send: %s\n", strerror(errno));
+            return 1;
         } else if (b == 0) { // Socket cerrado
             return 0;
         } else {
@@ -155,14 +150,14 @@ ssize_t socket_send(socket_t *self, const char *buffer, size_t len) {
     return 0;
 }
 
-ssize_t socket_receive(socket_t *self, char *buffer, size_t len) {
+int socket_recv(socket_t *self, char *buffer, size_t len) {
     ssize_t recv_b = 0;
 
     while (len > recv_b) {
         ssize_t b = recv(self->fd, buffer + recv_b, len - recv_b, 0);
         if (b == -1) {
-            printf("Error read: %s\n", strerror(errno));
-            return b;
+            printf("Error recv: %s\n", strerror(errno));
+            return 1;
         } else if (b == 0) { // Socket cerrado
             return 0;
         } else {

@@ -12,7 +12,11 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
 
-    if (client_create(&client, argv[1], argv[2]) != 0) {
+    if (client_create(&client) != 0) {
+        return 1;
+    }
+
+    if (client_connect(&client, argv[1], argv[2]) != 0) {
         return 1;
     }
 
