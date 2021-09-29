@@ -84,7 +84,16 @@ La comunicación entre servidor y cliente se hace mediante sockets por lo tanto 
 
 Del lado del servidor están los TDAs: **server** y **server_hangman**. 
 
-**server_hangman** contiene toda la logica del juego del ahorcado. A traves de su interfaz se puede crear una partida, probar letras y destruir el TDA. Internamente el TDA se ocupa de recibir letras, verificar si la palabra secreta contiene dicha letra y en consecuencia actualizar los intentos restantes y la palabra parcialmente adivinada. Dentro de este TDA se encuentra uno de los pocos usos de memoria dinámica, tanto la palabra secreta como la palabra parcialmente adivinada se alocan en el heap ya que no hay forma de saber previamente cuantos bytes se necesitarán. La diferencia entre la palabra secreta y la palabra parcialmente adivinada es que la primera se aloca por fuera del TDA y para segunda se reserva memoria dentro del constructor. 
+* **server_hangman** contiene toda la logica del juego del ahorcado. A traves de su interfaz se puede crear una partida, probar letras y destruir el TDA. Internamente el TDA se ocupa de recibir letras, verificar si la palabra secreta contiene dicha letra y en consecuencia actualizar los intentos restantes y la palabra parcialmente adivinada. Dentro de este TDA se encuentra uno de los pocos usos de memoria dinámica, tanto la palabra secreta como la palabra parcialmente adivinada se alocan en el heap ya que no hay forma de saber previamente cuantos bytes se necesitarán. La diferencia entre la palabra secreta y la palabra parcialmente adivinada es que la primera se aloca por fuera del TDA y para segunda se reserva memoria dentro del constructor. 
 
-**server** provee una interfaz con la funciones necesarias para crear y correr un servidor. La comunicación entre servidor y cliente se hace mediante sockets por lo tanto internamente **server** se hace uso del TDA **socket** para crear, destruir y aceptar sockets. Además usa las funciones provistas por **socket** para enviar y recibir mensajes del cliente. La función más compleja de **server** es *server_run* que se ocupa de crear una partida de ahorcado por cada palabra que hay en el repositorio de palabra.
+* **server** provee una interfaz con la funciones necesarias para crear y correr un servidor. La comunicación entre servidor y cliente se hace mediante sockets por lo tanto internamente **server** se hace uso del TDA **socket** para crear, destruir y aceptar sockets. Además usa las funciones provistas por **socket** para enviar y recibir mensajes del cliente. La función más compleja de **server** es *server_run* que se ocupa de crear una partida de ahorcado y esperar un cliente por cada palabra que hay en el repositorio de palabra.
+
+Del lado del cliente está el TDA **client**. Este provee una interfaz que permite crear, conectar, correr y destruir un cliente. Al igual que como sucedía con **server** la función más compleja es *client_run*, esta tiene un ciclo donde le pide una letra al usuario, se la envía al servidor y luego recibe el mensaje de respuesta del servidor. La lógica con la decodificación del mensaje está en una función auxiliar.
+
+## Consideraciones
+
+* Una letra incorrecta resta una oportunidad siempre. Si se envía dos veces la misma letra incorrecta se restan dos oportunidades.
+* Enviar una letra correcta que ya fue adivinada no resta ninguna oportunidad.
+
+
 
