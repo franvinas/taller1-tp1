@@ -52,12 +52,12 @@ static bool message_decode_and_print(const unsigned char game_info,
 ************************/
 
 int client_create(client_t *self) {
-    socket_create(&self->sk);
+    if (socket_create(&self->sk) != 0) return -1;
     return 0;
 }
 
 int client_destroy(client_t *self) {
-    socket_destroy(&self->sk);
+    if (socket_destroy(&self->sk) != 0) return -1;
     return 0;
 }
 

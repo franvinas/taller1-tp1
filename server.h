@@ -16,17 +16,12 @@ typedef struct {
 /*
  *  Constructor
  */
-int server_create(server_t *self);
+int server_create(server_t *self, const char *port);
 
 /*
  *  Destructor
  */
 int server_destroy(server_t *self);
-
-/*
- *  Asigna la IP local y el puerto dado por argumento al socket
- */
-int server_bind_and_listen(server_t *self, const char *port);
 
 /*
  *  Abre el archivo de nombre "words_repo_name" y por cada linea se queda a la

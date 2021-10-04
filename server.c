@@ -33,13 +33,23 @@ static int play_hangman(hangman_t *hangman, socket_t * client_socket) {
     return (msg[0] & 0x3F) > 0 ? 1 : 0;
 }
 
+/*
+ *  Asigna la IP local y el puerto dado por argumento al socket
+ */
+static int server_bind_and_listen(server_t *self, const char *port) {
+    socket_bind_and_listen(&self->sk, "127.0.0.1", port, LISTEN_BACKLOG);
+    return 0;
+}
+
 /***********************
     Metodos publicos
 ************************/
 
-int server_create(server_t *self) {
-    socket_create(&self->sk);
+int server_create(server_t *self, const char *port) {
+    if (socket_create(&self->sk) != 0) return -1;
     
+    if (server_bind_and_listen(self, port) != 0) return -1;
+
     self->victories = 0;
     self->defeats = 0;
     return 0;
@@ -47,12 +57,8 @@ int server_create(server_t *self) {
 
 int server_destroy(server_t *self) {
     socket_destroy(&self->sk);
-    fclose(self->words_repo);
-    return 0;
-}
-
-int server_bind_and_listen(server_t *self, const char *port) {
-    socket_bind_and_listen(&self->sk, "127.0.0.1", port, LISTEN_BACKLOG);
+    if (self->words_repo)
+        fclose(self->words_repo);
     return 0;
 }
 
