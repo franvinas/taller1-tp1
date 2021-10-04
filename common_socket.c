@@ -88,27 +88,21 @@ int socket_bind_and_listen(socket_t *self,
     
     if (socket_getaddrinfo(self, host, service, &ptr, passive) != 0)
         return -1;
-    
-    self->fd = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
-    if (self->fd == -1) {
-        printf("Error: %s\n", strerror(errno));
-        freeaddrinfo(ptr);
-        return -1;
-    }
 
     for (rp = ptr; rp != NULL; rp = rp->ai_next) {
-        int sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-        if (sfd == -1)
+        self->fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (self->fd == -1)
             continue;
 
         if (socket_bind(self, rp) == 0) // Bind exitoso
             break;
 
-        close(sfd);
+        close(self->fd);
     }
     freeaddrinfo(ptr);
     
     if (rp == NULL) { // Falló bind para todas las addrs
+        printf("Error: %s\n", strerror(errno));
         close(self->fd);
         return -1;
     }
@@ -120,6 +114,7 @@ int socket_bind_and_listen(socket_t *self,
     }
     
     if (socket_listen(self, queue_length) != 0) {
+        printf("Error: %s\n", strerror(errno));
         close(self->fd);
         return -1;
     }
@@ -138,26 +133,30 @@ int socket_accept(socket_t *self, socket_t *peer) {
 int socket_connect(socket_t *self, 
                     const char *host, 
                     const char *service) {
-    struct addrinfo *ptr;
+    struct addrinfo *ptr, *rp;
     bool passive = false; // necesario para luego usar connect
     
     if (socket_getaddrinfo(self, host, service, &ptr, passive) != 0)
         return -1;
 
-    self->fd = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
-    if (self->fd == -1) {
+    for (rp = ptr; rp != NULL; rp = rp->ai_next) {
+        self->fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (self->fd == -1)
+            continue;
+
+        if (connect(self->fd, ptr->ai_addr, ptr->ai_addrlen) == 0) // Connect exitoso
+            break;
+
+        close(self->fd);
+    }
+    freeaddrinfo(ptr);
+    
+    if (rp == NULL) { // Falló connect para todas las addrs
         printf("Error: %s\n", strerror(errno));
-        freeaddrinfo(ptr);
+        close(self->fd);
         return -1;
     }
 
-    int c = connect(self->fd, ptr->ai_addr, ptr->ai_addrlen);
-    if (c == -1) {
-        printf("Error: %s\n", strerror(errno));
-        freeaddrinfo(ptr);
-        return -1;
-    }
-    freeaddrinfo(ptr);
     return 0;
 }
 
