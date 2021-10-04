@@ -65,11 +65,9 @@ int server_destroy(server_t *self) {
 }
 
 int server_run(server_t *self, int tries, const char *words_repo_name) {
-    socket_t client_socket;
-    hangman_t hangman;
     char *word = NULL;
-    ssize_t line_len;
-    size_t buffer_size;
+    ssize_t line_len = 0;
+    size_t buffer_size = 0;
 
     self->tries = tries;
     self->words_repo = fopen(words_repo_name, "r");
@@ -79,6 +77,8 @@ int server_run(server_t *self, int tries, const char *words_repo_name) {
     }
     
     while ((line_len = getline(&word, &buffer_size, self->words_repo)) > 1) {
+        socket_t client_socket;
+        hangman_t hangman;
         socket_accept(&self->sk, &client_socket);    
         word[line_len - 1] = '\0';
         hangman_create(&hangman, word, self->tries);
