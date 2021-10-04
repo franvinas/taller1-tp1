@@ -5,23 +5,36 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define MIN_LEN_MSG 3
-
 /***********************
     Metodos privados
 ************************/
 
-static unsigned short int get_word_len(char *msg) {
-    unsigned short int word_len_net;
-    memcpy(&word_len_net, &msg[1], 2);
-    return ntohs(word_len_net);
+static int client_get_msg(client_t *self, 
+                          unsigned char *game_info, 
+                          uint16_t *word_len, 
+                          char *word) {
+    int s;
+    s = socket_recv(&self->sk, (char *) game_info, 1);
+    if (s != 0) return 1;
+
+    s = socket_recv(&self->sk, (char *) word_len, 2);
+    if (s != 0) return 1;
+
+    *word_len = ntohs(*word_len);
+
+    s = socket_recv(&self->sk, word, *word_len);
+    if (s != 0) return 1;
+
+    word[*word_len] = '\0';
+
+    return 0;
 }
 
-static bool message_decode_and_print(char *msg, unsigned short int word_len) {
-    bool game_over = (msg[0] & 0x80) != 0;
-    unsigned char tries_left = (msg[0] & 0x3F);
-    char *word = msg + MIN_LEN_MSG;
-    word[word_len] = '\0';
+static bool message_decode_and_print(const unsigned char game_info, 
+                                     const uint16_t word_len, 
+                                     const char *word) {
+    bool game_over = (game_info & 0x80) != 0;
+    unsigned char tries_left = (game_info & 0x7F);
 
     if (!game_over) {
         printf("Palabra secreta: %s\n", word);
@@ -57,23 +70,25 @@ int client_connect(client_t *self, const char *host, const char *port) {
 }
 
 int client_run(client_t *self) {
-    unsigned short int word_len;
     char c = 0;
-    char *tmp;
-    char *msg = malloc(MIN_LEN_MSG *sizeof(char));
+    char *word;
     bool game_over = false;
+    uint16_t word_len = 0;
+    unsigned char game_info = 0;
+    int i;
 
-    socket_recv(&self->sk, msg, MIN_LEN_MSG);
-    word_len = get_word_len(msg);
-    tmp = realloc(msg, MIN_LEN_MSG + word_len + 1);
-    if (tmp == NULL) {
-        free(tmp);
+    word = malloc(word_len + 1);
+    if (word == NULL) {
         return 1;
-    } else {
-        msg = tmp;
     }
-    socket_recv(&self->sk, msg + MIN_LEN_MSG, word_len);
-    game_over = message_decode_and_print(msg, word_len);
+
+    i = client_get_msg(self, &game_info, &word_len, word);
+    if (i != 0) {
+        free(word);
+        return 1;
+    }
+
+    game_over = message_decode_and_print(game_info, word_len, word);
 
     while (!game_over) {
         if (c != '\n')
@@ -82,12 +97,16 @@ int client_run(client_t *self) {
         if (c != '\n') {
             printf("\n");
             socket_send(&self->sk, &c, 1);
-            socket_recv(&self->sk, msg, word_len + MIN_LEN_MSG);
-            game_over = message_decode_and_print(msg, word_len);
+            i = client_get_msg(self, &game_info, &word_len, word);
+            if (i != 0) {
+                free(word);
+                return 1;
+            }
+            game_over = message_decode_and_print(game_info, word_len, word);
         }
     }
     
-    free(msg);
+    free(word);
 
     return 0;
 }
