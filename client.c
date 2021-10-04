@@ -15,15 +15,15 @@ static int client_get_msg(client_t *self,
                           char *word) {
     int s;
     s = socket_recv(&self->sk, (char *) game_info, 1);
-    if (s != 0) return 1;
+    if (s != 0) return -1;
 
     s = socket_recv(&self->sk, (char *) word_len, 2);
-    if (s != 0) return 1;
+    if (s != 0) return -1;
 
     *word_len = ntohs(*word_len);
 
     s = socket_recv(&self->sk, word, *word_len);
-    if (s != 0) return 1;
+    if (s != 0) return -1;
 
     word[*word_len] = '\0';
 
@@ -64,7 +64,7 @@ int client_destroy(client_t *self) {
 int client_connect(client_t *self, const char *host, const char *port) {
     int s = socket_connect(&self->sk, host, port);
     if (s != 0) {
-        return 1;
+        return -1;
     }
     return 0;
 }
@@ -79,13 +79,13 @@ int client_run(client_t *self) {
 
     word = malloc(word_len + 1);
     if (word == NULL) {
-        return 1;
+        return -1;
     }
 
     i = client_get_msg(self, &game_info, &word_len, word);
     if (i != 0) {
         free(word);
-        return 1;
+        return -1;
     }
 
     game_over = message_decode_and_print(game_info, word_len, word);
@@ -96,11 +96,15 @@ int client_run(client_t *self) {
         c = getchar();
         if (c != '\n') {
             printf("\n");
-            socket_send(&self->sk, &c, 1);
+            i = socket_send(&self->sk, &c, 1);
+            if (i != 0) {
+                free(word);
+                return -1;
+            }
             i = client_get_msg(self, &game_info, &word_len, word);
             if (i != 0) {
                 free(word);
-                return 1;
+                return -1;
             }
             game_over = message_decode_and_print(game_info, word_len, word);
         }

@@ -10,25 +10,27 @@ int main(int argc, const char *argv[]) {
         printf("Error en la cantidad de argumentos\n");
         printf("El servidor se ejecuta de la siguiente manera:\n");
         printf("./server <port> <N> <path al repositorio de palabras>\n");
-        return 1;
+        return -1;
     }
 
     if (server_create(&server) != 0) {
-        return 1;
+        return -1;
     }
 
     if (server_bind_and_listen(&server, argv[1]) != 0) {
-        return 1;
+        server_destroy(&server);
+        return -1;
     }
     
     if (server_run(&server, atoi(argv[2]), argv[3]) != 0) {
-        return 1;
+        server_destroy(&server);
+        return -1;
     }
 
     server_print_summary(&server);
     
     if (server_destroy(&server) != 0) {
-        return 1;
+        return -1;
     }
 
     return 0;
