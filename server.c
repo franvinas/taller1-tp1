@@ -50,8 +50,10 @@ int server_create(server_t *self, const char *port) {
     
     if (server_bind_and_listen(self, port) != 0) return -1;
 
+    self->words_repo = NULL;
     self->victories = 0;
     self->defeats = 0;
+    self->tries = 0;
     return 0;
 }
 
