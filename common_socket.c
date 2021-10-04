@@ -36,15 +36,10 @@ static int socket_getaddrinfo(socket_t *self,
 /*  Se activa la opción de reusar la direccion en caso de que esta
  *  no este disponible por un TIME_WAIT 
  */
-static int socket_reuse_address(socket_t *self, struct addrinfo *ptr) {
+static int socket_reuse_address(socket_t *self) {
     int val = 1;
     int s = setsockopt(self->fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
-    if (s == -1) {
-        printf("Error: %s\n", strerror(errno));
-        close(self->fd);
-        freeaddrinfo(ptr);
-        return -1;
-    }
+    if (s == -1) return -1;
     return 0;
 }
 
@@ -88,7 +83,7 @@ int socket_bind_and_listen(socket_t *self,
                             const char *host,
                             const char *service,
                             int queue_length) {
-    struct addrinfo *ptr;
+    struct addrinfo *ptr, *rp;
     bool passive = true; // necesario para luego aceptar conexiones
     
     if (socket_getaddrinfo(self, host, service, &ptr, passive) != 0)
@@ -100,17 +95,30 @@ int socket_bind_and_listen(socket_t *self,
         freeaddrinfo(ptr);
         return -1;
     }
-    if (socket_reuse_address(self, ptr) != 0) {
-        close(self->fd);
-        freeaddrinfo(ptr);
-        return -1;
-    }
-    if (socket_bind(self, ptr) != 0) {
-        close(self->fd);
-        freeaddrinfo(ptr);
-        return -1;
+
+    for (rp = ptr; rp != NULL; rp = rp->ai_next) {
+        int sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (sfd == -1)
+            continue;
+
+        if (socket_bind(self, rp) == 0) // Bind exitoso
+            break;
+
+        close(sfd);
     }
     freeaddrinfo(ptr);
+    
+    if (rp == NULL) { // Falló bind para todas las addrs
+        close(self->fd);
+        return -1;
+    }
+
+    if (socket_reuse_address(self) != 0) {
+        printf("Error: %s\n", strerror(errno));
+        close(self->fd);
+        return -1;
+    }
+    
     if (socket_listen(self, queue_length) != 0) {
         close(self->fd);
         return -1;
