@@ -37,7 +37,7 @@ static int play_hangman(hangman_t *hangman, socket_t * client_socket) {
  *  Asigna la IP local y el puerto dado por argumento al socket
  */
 static int server_bind_and_listen(server_t *self, const char *port) {
-    socket_bind_and_listen(&self->sk, "127.0.0.1", port, LISTEN_BACKLOG);
+    socket_bind_and_listen(&self->sk, NULL, port, LISTEN_BACKLOG);
     return 0;
 }
 
