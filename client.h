@@ -1,27 +1,22 @@
-#include "common_socket.h"
-
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include "common_protocol.h"
+
 typedef struct {
-    socket_t sk;
+    protocol_t protocol;
 } client_t;
 
 /*
  *  Constructor
  */
-int client_create(client_t *self);
+int client_create(client_t *self, const char *host, const char *port);
 
 
 /*
  *  Destructor
  */
 int client_destroy(client_t *self);
-
-/*
- *  El cliente se conecta al servidor dado por la dirección "host" en el puerto "port"
- */
-int client_connect(client_t *self, const char *host, const char *port);
 
 /*
  *  El cliente corre con la interfaz de usuario que permite jugar al ahorcado mientras

@@ -1,13 +1,12 @@
-#include <stdio.h>
-#include "common_socket.h"
-#include "server_hangman.h"
-
 #ifndef SERVER_H
 #define SERVER_H
 
+#include "common_protocol.h"
+#include <stdio.h>
+
 typedef struct {
     FILE *words_repo;
-    socket_t sk;
+    protocol_t protocol;
     unsigned int victories;
     unsigned int defeats;
     int tries;

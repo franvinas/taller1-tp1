@@ -94,8 +94,8 @@ int socket_bind_and_listen(socket_t *self,
         if (self->fd == -1)
             continue;
 
-        if (socket_bind(self, rp) == 0) // Bind exitoso
-            break;
+        if (socket_bind(self, rp) == 0)
+            break; // Bind exitoso
 
         close(self->fd);
     }
@@ -144,8 +144,8 @@ int socket_connect(socket_t *self,
         if (self->fd == -1)
             continue;
 
-        if (connect(self->fd, ptr->ai_addr, ptr->ai_addrlen) == 0) // Connect exitoso
-            break;
+        if (connect(self->fd, ptr->ai_addr, ptr->ai_addrlen) == 0)
+            break; // Connect exitoso
 
         close(self->fd);
     }

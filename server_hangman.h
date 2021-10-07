@@ -1,15 +1,13 @@
-#include <stdbool.h>
-
-#ifndef SERVER_AHORCADO_H
+#ifndef SERVER_HANGMAN_H
 #define SERVER_HANGMAN_H
+
+#include <stdbool.h>
+#include "common_game_state.h"
 
 typedef struct {
     char *word;
-    char *partial_word;
-    char *msg;
-    unsigned char tries_left;
     unsigned short int len;
-    bool game_over;
+    game_state_t game_state;
 } hangman_t;
 
 /*
@@ -18,7 +16,7 @@ typedef struct {
  *  palabra en el heap y liberarla posteriormente.
  *  Además recibe la cantidad de intentos que tiene el jugador.
  */
-int hangman_create(hangman_t *self, char *word, int tries);
+int hangman_create(hangman_t *self, char *word, unsigned char tries);
 
 /*
  *  Destructor
@@ -41,5 +39,7 @@ int hangman_try_letter(hangman_t *self, char letter);
  *  La memoria utilizada para el mensaje se libera llamando al destructor.
  */
 int hangman_get_msg(hangman_t *self, char **msg);
+
+game_state_t *hangman_get_game_state(hangman_t *self);
 
 #endif
