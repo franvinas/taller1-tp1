@@ -2,13 +2,13 @@
 #define SERVER_H
 
 #include "common_protocol.h"
+#include "server_summary.h"
 #include <stdio.h>
 
 typedef struct {
     FILE *words_repo;
     protocol_t protocol;
-    unsigned int victories;
-    unsigned int defeats;
+    summary_t summary;
     int tries;
 } server_t;
 

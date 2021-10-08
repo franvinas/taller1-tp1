@@ -1,51 +1,13 @@
 #include "client.h"
 #include <stdio.h>
-#include <stdbool.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 /***********************
     Metodos privados
 ************************/
 
-// static int client_get_msg(client_t *self, 
-//                           unsigned char *game_info, 
-//                           uint16_t *word_len, 
-//                           char *word) {
-//     int s;
-//     s = socket_recv(&self->sk, (char *) game_info, 1);
-//     if (s != 0) return 1;
-
-//     s = socket_recv(&self->sk, (char *) word_len, 2);
-//     if (s != 0) return 1;
-
-//     *word_len = ntohs(*word_len);
-
-//     s = socket_recv(&self->sk, word, *word_len);
-//     if (s != 0) return 1;
-
-//     word[*word_len] = '\0';
-
-//     return 0;
-// }
-
-// static bool message_decode_and_print(const unsigned char game_info, 
-//                                      const uint16_t word_len, 
-//                                      const char *word) {
-//     bool game_over = (game_info & 0x80) != 0;
-//     unsigned char tries_left = (game_info & 0x7F);
-
-//     if (!game_over) {
-//         printf("Palabra secreta: %s\n", word);
-//         printf("Te quedan %hhu intentos\n", tries_left);
-//     } else if (tries_left > 0) {
-//         printf("Ganaste!!\n");
-//     } else {
-//         printf("Perdiste! La palabra secreta era: '%s'\n", word);
-//     }
-//     return game_over;    
-// }
-
-int print_player_msg(const bool game_over, 
+void print_player_msg(const bool game_over, 
                       const unsigned char tries_left, 
                       const char *word) {
     if (!game_over) {
@@ -56,7 +18,6 @@ int print_player_msg(const bool game_over,
     } else {
         printf("Perdiste! La palabra secreta era: '%s'\n", word);
     }
-    return 0;
 }
 
 /***********************
@@ -65,7 +26,10 @@ int print_player_msg(const bool game_over,
 
 int client_create(client_t *self, const char *host, const char *port) {
     if (protocol_create(&self->protocol) != 0) return 1;
-    if (protocol_connect(&self->protocol, host, port)) return 1;
+    if (protocol_connect(&self->protocol, host, port) != 0) {
+        protocol_destroy(&self->protocol);
+        return 1;
+    }
     return 0;
 }
 

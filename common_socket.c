@@ -1,11 +1,10 @@
 #include "common_socket.h"
 #include <stdio.h>
 #include <errno.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <netdb.h>
+#include <stdbool.h>
+#include <string.h>
+#include <unistd.h>
 
 /***********************
     Metodos privados

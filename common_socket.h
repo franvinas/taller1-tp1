@@ -2,10 +2,6 @@
 #define SOCKET_H
 
 #include <stddef.h>
-#include <stdint.h>
-#include <unistd.h>
-#include <stdbool.h>
-#include <string.h>
 
 typedef struct {
     int fd;

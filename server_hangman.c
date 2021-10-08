@@ -1,7 +1,5 @@
 #include "server_hangman.h"
 #include <string.h>
-#include <stdio.h>
-#include <stdbool.h>
 
 #define MIN_LEN_MSG 3
 
@@ -46,18 +44,6 @@ int hangman_try_letter(hangman_t *self, char letter) {
         return 1;
     }
     return 0;
-
-    // if (!hangman_contains_letter(self, letter)) {
-    //     game_state_decrease_tries(self->game_state);
-    //     if (game_state_game_over(self->game_state)) {
-    //         game_state_complete_word(self->game_state, self->word);
-    //         return 1;
-    //     }
-    // } else if (game_state_game_over(self->game_state)) {
-    //     return 1;
-    // }
-
-    // return 0;
 }
 
 game_state_t *hangman_get_game_state(hangman_t *self) {

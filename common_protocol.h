@@ -1,5 +1,5 @@
-#ifndef PROTOCOL_H
-#define PROTOCOL_H
+#ifndef COMMON_PROTOCOL_H
+#define COMMON_PROTOCOL_H
 
 #include "common_socket.h"
 #include "common_game_state.h"

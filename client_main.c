@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdbool.h>
 #include "client.h"
 
 int main(int argc, const char *argv[]) {

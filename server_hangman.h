@@ -1,7 +1,6 @@
 #ifndef SERVER_HANGMAN_H
 #define SERVER_HANGMAN_H
 
-#include <stdbool.h>
 #include "common_game_state.h"
 
 typedef struct {

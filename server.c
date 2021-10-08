@@ -14,11 +14,6 @@
  */
 static int play_hangman(hangman_t *hangman, protocol_t *protocol) {
     char c;
-    // char *msg;
-
-    // msg_len = hangman_get_msg(hangman, &msg);
-    // if (socket_send(client_socket, msg, msg_len) != 0) return 1;
-    
     game_state_t *game_state = hangman_get_game_state(hangman);
     if (protocol_server_send(protocol, game_state) != 0) return 1;
 
@@ -37,17 +32,23 @@ static int play_hangman(hangman_t *hangman, protocol_t *protocol) {
 
 int server_create(server_t *self, const char *port) {
     if (protocol_create(&self->protocol) != 0) return 1;
-    if (protocol_listen(&self->protocol, port) != 0) return 1;
+    if (protocol_listen(&self->protocol, port) != 0) {
+        protocol_destroy(&self->protocol);
+        return 1;
+    }
+    if (summary_create(&self->summary) != 0) {
+        protocol_destroy(&self->protocol);
+        return 1;
+    }
 
     self->words_repo = NULL;
-    self->victories = 0;
-    self->defeats = 0;
     self->tries = 0;
     return 0;
 }
 
 int server_destroy(server_t *self) {
     protocol_destroy(&self->protocol);
+    summary_destroy(&self->summary);
     if (self->words_repo)
         fclose(self->words_repo);
     return 0;
@@ -74,9 +75,9 @@ int server_run(server_t *self, int tries, const char *words_repo_name) {
         if (h == -1) // error
             return 1;
         else if (h == 1)
-            self->victories++;
+            summary_new_victory(&self->summary);
         else
-            self->defeats++;
+            summary_new_defeat(&self->summary);
         hangman_destroy(&hangman);
         protocol_free_client(&self->protocol);
     }
@@ -86,7 +87,5 @@ int server_run(server_t *self, int tries, const char *words_repo_name) {
 }
 
 void server_print_summary(server_t *self) {
-    printf("Resumen:\n");
-    printf("\tVictorias: %u\n", self->victories);
-    printf("\tDerrotas: %u\n", self->defeats);
+    summary_print(&self->summary);
 }

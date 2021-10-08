@@ -1,7 +1,5 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include "server.h"
-
 
 int main(int argc, const char *argv[]) {
     server_t server;

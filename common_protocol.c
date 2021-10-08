@@ -1,7 +1,7 @@
 #include "common_protocol.h"
-#include "common_socket.h"
 #include <stdlib.h>
 #include <arpa/inet.h>
+#include <string.h>
 
 #define LISTEN_BACKLOG 50
 
