@@ -15,13 +15,13 @@
 static int play_hangman(hangman_t *hangman, protocol_t *protocol) {
     char c;
     game_state_t *game_state = hangman_get_game_state(hangman);
-    if (protocol_server_send(protocol, game_state) != 0) return 1;
+    if (protocol_server_send(protocol, game_state) != 0) return -1;
 
     while (!game_state_game_over(game_state)) {
-        if (protocol_server_recv(protocol, &c) != 0) return 1;
+        if (protocol_server_recv(protocol, &c) != 0) return -1;
         hangman_try_letter(hangman, c);
         game_state = hangman_get_game_state(hangman);
-    if (protocol_server_send(protocol, game_state) != 0) return 1;
+        if (protocol_server_send(protocol, game_state) != 0) return -1;
     }
     return game_state_get_tries_left(game_state) > 0 ? 1 : 0;
 }

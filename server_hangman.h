@@ -32,13 +32,9 @@ int hangman_destroy(hangman_t *self);
 int hangman_try_letter(hangman_t *self, char letter);
 
 /*
- *  Esta función recibe el argumento "msg" donde se guarda una dirección del 
- *  heap donde se aloja el mensaje codificado segun el protocolo de 
- *  comunicacion.
- *  La memoria utilizada para el mensaje se libera llamando al destructor.
+ *  Devuelve un puntero a una estructura que contiene la informacion 
+ *  publica de la partida
  */
-int hangman_get_msg(hangman_t *self, char **msg);
-
 game_state_t *hangman_get_game_state(hangman_t *self);
 
 #endif

@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define EMPTY_LETTER '_'
+
 /***********************
     Metodos publicos
 ************************/
@@ -14,11 +16,11 @@ int game_state_create(game_state_t *self,
     self->len = word_len;
     self->partial_word = malloc(word_len);
     if (self->partial_word == NULL) {
-        return 1;
+        return -1;
     }
     
     for (int i = 0; i < self->len; i++)
-        self->partial_word[i] = '_';
+        self->partial_word[i] = EMPTY_LETTER;
 
     return 0;
 }
@@ -32,7 +34,7 @@ int game_state_guessed_letter(game_state_t *self,
                               const char letter, 
                               const int pos) {
     self->partial_word[pos] = letter;
-    if (memchr(self->partial_word, '_', self->len) == NULL)
+    if (memchr(self->partial_word, EMPTY_LETTER, self->len) == NULL)
         self->game_over = true;
 
     return 0;
@@ -50,7 +52,7 @@ int game_state_complete_word(game_state_t *self, const char* word) {
     return 0;
 }
 
-int game_state_game_over(const game_state_t *self) {
+bool game_state_game_over(const game_state_t *self) {
     return self->game_over;
 }
 
