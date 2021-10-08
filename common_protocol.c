@@ -85,7 +85,5 @@ int protocol_client_recv(protocol_t *self,
     s = socket_recv(&self->sk, *partial_word, word_len);
     if (s != 0) return -1;
 
-    // *partial_word[word_len] = '\0';
-
     return 0;
 }

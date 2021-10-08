@@ -18,9 +18,7 @@ int game_state_create(game_state_t *self,
     if (self->partial_word == NULL) {
         return -1;
     }
-    
-    for (int i = 0; i < self->len; i++)
-        self->partial_word[i] = EMPTY_LETTER;
+    memset(self->partial_word, EMPTY_LETTER, self->len);
 
     return 0;
 }
