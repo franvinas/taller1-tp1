@@ -80,20 +80,25 @@ Notar que si el usuario pierde, se muestra por pantalla cual era la palabra secr
 
 Para la resolución de este trabajo se hace uso de distintos TDAs. Se utilizo este enfoque para modularizar y dividir responsabilidades lo más posible. 
 
-La comunicación entre servidor y cliente se hace mediante sockets por lo tanto se implementó un TDA **socket** (common_socket.c y common_socket.h) que se usa tanto desde el lado del servidor como desde el lado del cliente. Este TDA provee una interfaz sencilla para manejar sockets.
+La comunicación entre servidor y cliente se hace mediante el TDA **protocol**. Este TDA ofrece una interfaz pensada para que tanto el servidor como el cliente puedan enviar y recibir los datos que son de su interés sin tener que preocuparse por el manejo de bits o la estrucuta de comunicación. Internamente hace uso del TDA **sockets** (common_socket.c y common_socket.h). Este TDA provee una interfaz sencilla para manejar sockets. Además, se implementó el TDA **game_state** para facilitar el acceso a la información pública de la partida.
 
-Del lado del servidor están los TDAs: **server** y **server_hangman**. 
+Del lado del servidor están los TDAs: **server**, **server_summary** y **server_hangman**. 
 
 * **server_hangman** contiene toda la logica del juego del ahorcado. A traves de su interfaz se puede crear una partida, probar letras y destruir el TDA. Internamente el TDA se ocupa de recibir letras, verificar si la palabra secreta contiene dicha letra y en consecuencia actualizar los intentos restantes y la palabra parcialmente adivinada. Dentro de este TDA se encuentra uno de los pocos usos de memoria dinámica, tanto la palabra secreta como la palabra parcialmente adivinada se alocan en el heap ya que no hay forma de saber previamente cuantos bytes se necesitarán. La diferencia entre la palabra secreta y la palabra parcialmente adivinada es que la primera se aloca por fuera del TDA y para segunda se reserva memoria dentro del constructor. 
 
-* **server** provee una interfaz con la funciones necesarias para crear y correr un servidor. La comunicación entre servidor y cliente se hace mediante sockets por lo tanto internamente **server** se hace uso del TDA **socket** para crear, destruir y aceptar sockets. Además usa las funciones provistas por **socket** para enviar y recibir mensajes del cliente. La función más compleja de **server** es *server_run* que se ocupa de crear una partida de ahorcado y esperar un cliente por cada palabra que hay en el repositorio de palabra.
+* **server_summary** se ocupa de contar la cantidad de victorias y cantidad de derrotas. El método `summary_print` imprime por salida estandar un resumen de las partidas jugadas.
 
-Del lado del cliente está el TDA **client**. Este provee una interfaz que permite crear, conectar, correr y destruir un cliente. Al igual que como sucedía con **server** la función más compleja es *client_run*, esta tiene un ciclo donde le pide una letra al usuario, se la envía al servidor y luego recibe el mensaje de respuesta del servidor. La lógica con la decodificación del mensaje está en una función auxiliar.
+* **server** provee una interfaz con la funciones necesarias para crear y correr un servidor. La comunicación entre servidor y cliente se hace mediante sockets por lo tanto internamente **server** se hace uso del TDA **protocol** para comunicarse con los clientes. A traves de este TDA el servidor puede enviar y recibir mensajes del cliente. La función más compleja de **server** es `server_run` que se ocupa de crear una partida de ahorcado y esperar un cliente por cada palabra que hay en el repositorio de palabra. El siguiente diagrama describe el comportamiento de dicha función:
+
+![diagrama server_run](imgs/server_run.png)
+
+Dentro de la función `play_hangman` se encuentra la lógica de esperar que el cliente envíe una letra y luego pasar esa misma letra a **hangman** para que la procese. El siguiente diagrama muestra el comportamiento de la función:
+
+![diagrama play_hangman](imgs/server_play_hangman.png)
+
+Del lado del cliente está el TDA **client**. Este provee una interfaz que permite crear, conectar, correr y destruir un cliente. Al igual que como sucedía con **server** la función más compleja es *client_run*, esta tiene un ciclo donde le pide una letra al usuario, se la envía al servidor y luego recibe el mensaje de respuesta del servidor. 
 
 ## Consideraciones
 
 * Una letra incorrecta resta una oportunidad siempre. Si se envía dos veces la misma letra incorrecta se restan dos oportunidades.
 * Enviar una letra correcta que ya fue adivinada no resta ninguna oportunidad.
-
-
-
